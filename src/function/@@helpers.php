@@ -141,7 +141,7 @@ if (!function_exists('write_log')) {
      * @param bool $write_file
      * @return int|false
      */
-    function write_log($message, $file = 'log.txt', $write_file = WRITE_LOG)
+    function write_log($message, $file = 'log.txt', $write_file = false)
     {
         if ($write_file == false) return;
 
@@ -166,7 +166,7 @@ if (!function_exists('write_json')) {
      * @param boolean $write_file
      * @return int|false
      */
-    function write_json($message, $file = 'log.json', $write_file = WRITE_LOG)
+    function write_json($message, $file = 'log.json', $write_file = false)
     {
         if ($write_file == false) return false;
 
