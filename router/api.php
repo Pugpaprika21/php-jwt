@@ -8,6 +8,7 @@ use Slim\Routing\RouteContext;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
+use Service\Http\Init\Http;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '../../src/dependency.php';
@@ -52,11 +53,13 @@ $app->get('/login', function (Request $request, Response $response) {
     return view($response, "login.phtml");
 });
 
-$app->get('/', function (Request $request, Response $response) use ($query) {
-    $pdo = $query->usePDO();
-    $users = $pdo->query("select * from users")->fetchAll();
+$app->post('/jwt/login', function (Request $request, Response $response) use ($query) {
+    $body = $request->getParsedBody();
 
-    return json($response, $users);
+    $username = str($body['username']);
+    $password = str($body['password']);
+
+    return json($response, [$username, $password], Http::OK);
 });
 
 $app->run();
