@@ -1,0 +1,71 @@
+php -S localhost:8080 -t public router/web.php
+
+composer require illuminate/database
+composer remove illuminate/database "~5.1"
+composer update
+
+
+route param --
+
+$app->get('/', [HomeController::class, 'indexPage'])->setName('index-page');
+$app->get('/page/user/[{id}/{action}]', [HomeController::class, 'formHome'])->setName('home-page');
+
+
+####
+
+$query = new Query();
+
+$app->group('/api', function (RouteCollectorProxy $group) {
+    $group->get('/users', function (Request $request, Response $response, array $args) {
+        global $query;
+        $users = $query->table('user_tb')->get();
+        return response_json($response, ['data' => $users]);
+    });
+    
+    $group->get('/reset-password', function (Request $request, Response $response, array $args) {
+        return response_json($response, ['api_message' => '/reset-password']);
+    });
+});
+
+// static files
+
+$app->get('/js/{filename}', function (Request $request, Response $response, array $args) {
+    $filename = $args['filename'];
+    $response = $response->withHeader('Content-Type', 'application/javascript; charset=UTF-8');
+    $jsPath = __DIR__ . '../../public/js/' . $filename;
+    if (file_exists($jsPath)) {
+        $jsContent = file_get_contents($jsPath);
+        $response->getBody()->write($jsContent);
+    } else {
+        $response = $response->withStatus(404);
+        $response->getBody()->write('File not found' . $jsPath);
+    }
+    return $response;
+});
+
+header("Access-Control-Allow-Headers: *");
+header("Access-Control-Allow-Origin: *");
+header("Content-type:application/json");
+
+
+$app->add(function (Request $request, RequestHandlerInterface $handler): Response {
+    $routeContext = RouteContext::fromRequest($request);
+    $routingResults = $routeContext->getRoutingResults();
+    $methods = $routingResults->getAllowedMethods();
+    $requestHeaders = $request->getHeaderLine('Access-Control-Request-Headers');
+
+    $response = $handler->handle($request);
+
+    $response = $response->withHeader('Access-Control-Allow-Origin', '*');
+    $response = $response->withHeader('Access-Control-Allow-Methods', implode(',', $methods));
+    $response = $response->withHeader('Access-Control-Allow-Headers', $requestHeaders);
+
+    // Optional: Allow Ajax CORS requests with Authorization header
+    // $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+
+    return $response;
+});
+
+
+
+# http://localhost:8080/public/upload?type=image&filename=ff.png

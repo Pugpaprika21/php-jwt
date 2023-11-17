@@ -1,0 +1,75 @@
+<?php
+
+use Slim\Factory\AppFactory;
+use Slim\Routing\RouteCollectorProxy;
+use App\Foundation\Database\Query;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+
+require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '../../src/dependency.php';
+require __DIR__ . '../../middleware/public.php';
+require __DIR__ . '../../middleware/api.php';
+
+$app = AppFactory::create();
+
+$app->addBodyParsingMiddleware();
+
+$app->add($corsMiddleware);
+
+$app->addRoutingMiddleware();
+
+$app->addErrorMiddleware(true, true, true);
+
+$app->options('/api/v0/users', function (Request $request, Response $response): Response {
+    return $response;
+});
+
+$app->options('/api/v0/users/{id}', function (Request $request, Response $response): Response {
+    return $response;
+});
+
+//////////////////////////////////// API ////////////////////////////////////
+
+$app->group('/api/v0', function (RouteCollectorProxy $group) {
+
+    $group->get('/users', function (Request $request, Response $response): Response {
+        $response->getBody()->write('List all users');
+        return $response;
+    });
+
+    $group->post('/users', function (Request $request, Response $response): Response {
+        $parameters = (array)$request->getParsedBody();
+        $response->getBody()->write('Create user');
+        return $response;
+    });
+
+    $group->get('/users/{id}', function (Request $request, Response $response, array $args): Response {
+        $id = $args['id'];
+        $response->getBody()->write('get user id ' . $id);
+        return $response;
+    });
+
+    $group->delete('/users/{id}', function (Request $request, Response $response, array $args): Response {
+        $id = $args['id'];
+        $response->getBody()->write('delete user id ' . $id);
+        return $response;
+    });
+});
+
+//////////////////////////////////// WEB ////////////////////////////////////
+
+$app->group('/public', function (RouteCollectorProxy $group): void {
+    $group->get('/html/{filename}', 'staticHTML');
+    $group->get('/css/{filename}', 'staticCSS');
+    $group->get('/js/{filename}', 'staticJS');
+    $group->get('/upload[{type}/{filename}]', 'staticUpload');
+});
+
+$query = new Query();
+
+$app->get('/', function (Request $request, Response $response, array $args) use ($query) {
+    return view($response, 'welcome.phtml');
+});
+
+$app->run();

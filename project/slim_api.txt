@@ -1,0 +1,55 @@
+$corsMiddleware = function (Request $request, RequestHandler $handler): Response {
+    $routeContext = RouteContext::fromRequest($request);
+    $routingResults = $routeContext->getRoutingResults();
+    $methods = $routingResults->getAllowedMethods();
+    $requestHeaders = $request->getHeaderLine('Access-Control-Request-Headers');
+
+    $response = $handler->handle($request);
+
+    $response = $response->withHeader('Access-Control-Allow-Origin', '*');
+    $response = $response->withHeader('Access-Control-Allow-Methods', implode(',', $methods));
+    $response = $response->withHeader('Access-Control-Allow-Headers', $requestHeaders);
+
+    // Optional: Allow Ajax CORS requests with Authorization header
+    // $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+
+    return $response;
+};
+
+$app->add($corsMiddleware);
+
+$app->options('/api/v0/users', function (Request $request, Response $response): Response {
+    return $response;
+});
+
+$app->options('/api/v0/users/{id}', function (Request $request, Response $response): Response {
+    return $response;
+});
+
+
+$app->group('/api/v0', function (RouteCollectorProxy $group) {
+
+    $group->get('/users', function (Request $request, Response $response): Response {
+        $response->getBody()->write('List all users');
+        return $response;
+    });
+
+    $group->post('/users', function (Request $request, Response $response): Response {
+        $parameters = (array)$request->getParsedBody();
+        $response->getBody()->write('Create user');
+        return $response;
+    });
+
+    $group->get('/users/{id}', function (Request $request, Response $response, array $args): Response {
+        $id = $args['id'];
+        $response->getBody()->write('get user id ' . $id);
+        return $response;
+    });
+
+    $group->delete('/users/{id}', function (Request $request, Response $response, array $args): Response {
+        $id = $args['id'];
+        $response->getBody()->write('delete user id ' . $id);
+        return $response;
+    });
+
+});
