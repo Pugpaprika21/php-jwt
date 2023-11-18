@@ -1,6 +1,6 @@
 const { createApp } = Vue;
-
-createApp({
+const element = document.getElementById("register");
+const app = createApp({
     data() {
         return {
             url: "http://localhost:8080/jwt/",
@@ -32,4 +32,8 @@ createApp({
         },
     },
     mounted() {},
-}).mount("#app");
+});
+
+if (element) {
+    app.mount("#" + element.id);
+}

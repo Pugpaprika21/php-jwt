@@ -1,6 +1,6 @@
 const { createApp } = Vue;
-
-createApp({
+const element = document.getElementById("login");
+const app = createApp({
     data() {
         return {
             url: "http://localhost:8080/jwt/",
@@ -30,8 +30,13 @@ createApp({
                     }
                 })
                 .catch((err) => {
-                    localStorage.removeItem("authData");
-                    console.error(err);
+                    Swal.fire({
+                        position: "top-end",
+                        icon: "error",
+                        title: err.response.data.message,
+                        showConfirmButton: false,
+                        timer: 1500,
+                    });
                 });
         },
         setAuthLogin(userData) {
@@ -45,17 +50,36 @@ createApp({
                     })
                     .then((res) => {
                         if (res.status == 200) {
-                            console.log(res.data);
+                            Swal.fire({
+                                position: "top-end",
+                                icon: "success",
+                                title: res.data.message,
+                                showConfirmButton: false,
+                                timer: 1500,
+                            }).then((res) => {
+                                localStorage.setItem("authData", JSON.stringify(userData));
+                            });
                         }
-
                     })
                     .catch((err) => {
-                        console.error(err);
+                        if (err.ERR_BAD_RESPONSE) {
+                            Swal.fire({
+                                position: "top-end",
+                                icon: "error",
+                                title: err.response.data.message,
+                                showConfirmButton: false,
+                                timer: 1500,
+                            }).then((res) => {
+                                localStorage.removeItem("authData");
+                            });
+                        }
                     });
-
-                localStorage.setItem("authData", JSON.stringify(userData));
             }
         },
     },
     mounted() {},
-}).mount("#app");
+});
+
+if (element) {
+    app.mount("#" + element.id);
+}
