@@ -92,8 +92,12 @@ if (!function_exists('view')) {
             throw new Exception("View path not found: {$realPath}");
         }
 
-        $process = function () use ($realPath, $viewVars) {
-            extract($viewVars);
+        $process = function () use ($response, $realPath, $viewVars) {
+            $appView = array_merge([
+                'response' => $response
+            ], $viewVars);
+            
+            extract($appView);
 
             try {
                 ob_start();
